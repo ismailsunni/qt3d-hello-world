@@ -3,11 +3,10 @@
 #include <Qt3DExtras/Qt3DWindow>
 #include <Qt3DExtras/QCuboidMesh>
 #include <Qt3DCore/QTransform>
-#include <Qt3DExtras/QPhongMaterial>
+#include <Qt3DExtras/QPhongAlphaMaterial>
 #include <Qt3DRender/QMaterial>
 #include <QVector3D>
 #include <QColor>
-#include <QRgb>
 #include <Qt3DRender/QCamera>
 #include <Qt3DExtras/QOrbitCameraController>
 
@@ -36,9 +35,9 @@ int main(int argc, char *argv[])
 
     // Cuboid mesh data
     Qt3DExtras::QCuboidMesh *cuboid = new Qt3DExtras::QCuboidMesh();
-    cuboid->setXExtent(1);
+    cuboid->setXExtent(2);
     cuboid->setYExtent(2);
-    cuboid->setZExtent(3);
+    cuboid->setZExtent(2);
 
     // Cuboid mesh transform
     Qt3DCore::QTransform *cuboidTransform = new Qt3DCore::QTransform();
@@ -46,8 +45,12 @@ int main(int argc, char *argv[])
     cuboidTransform->setTranslation(QVector3D(10.0f, 10.0f, 0.0f));
 
     // Cuboid material
-    Qt3DExtras::QPhongMaterial *cuboidMaterial = new Qt3DExtras::QPhongMaterial(rootEntity);
-    cuboidMaterial->setDiffuse(QColor(QRgb(0x665423)));
+    Qt3DExtras::QPhongAlphaMaterial *cuboidMaterial = new Qt3DExtras::QPhongAlphaMaterial(rootEntity);
+    cuboidMaterial->setDiffuse(QColor(0, 0, 255, 255));
+    cuboidMaterial->setAmbient(QColor(0, 0, 255, 255));
+    cuboidMaterial->setSpecular(QColor(0, 0, 255, 255));
+    cuboidMaterial->setAlpha(0.5);
+    cuboidMaterial->setShininess(1.0);
 
     // Cuboid entity
     Qt3DCore::QEntity *cuboidEntity = new Qt3DCore::QEntity(rootEntity);
