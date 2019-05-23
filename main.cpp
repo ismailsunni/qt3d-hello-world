@@ -87,12 +87,16 @@ int main(int argc, char *argv[])
     QByteArray vertexBufferData;
 
     // Three vertex, three float and color each
-    vertexBufferData.resize(3 * (3 + 3) * sizeof(float));
+    vertexBufferData.resize(6 * (3 + 3) * sizeof(float));
 
     // Vertices
-    QVector3D v0(-0.5f, -0.5f, 0.0f);
-    QVector3D v1(0.5f, -0.5f, 0.0f);
-    QVector3D v2(0.0f,  0.5f, 0.0f);
+    QVector3D v0(0.0f, 0.0f, 0.0f);
+    QVector3D v1(1.0f, 0.0f, 0.0f);
+    QVector3D v2(0.0f, 1.0f, 0.0f);
+
+    QVector3D v3(1.0f, 0.0f, 0.0f);
+    QVector3D v4(1.0f, 1.0f, 0.0f);
+    QVector3D v5(0.0f, 1.0f, 0.0f);
 
     // Color
     QVector3D red(1.0f, 0.0f, 0.0f);
@@ -102,7 +106,10 @@ int main(int argc, char *argv[])
     QVector<QVector3D> vertices = QVector<QVector3D>()
             << v0 << red
             << v1 << green
-            << v2 << blue;
+            << v2 << blue
+            << v3 << green
+            << v4 << red
+            << v5 << blue;
 
     // What is this step?
     float *rawVertexArray = reinterpret_cast<float *>(vertexBufferData.data());
@@ -124,7 +131,7 @@ int main(int argc, char *argv[])
     positionAttribute->setVertexSize(3);
     positionAttribute->setByteOffset(0);
     positionAttribute->setByteStride(6 * sizeof(float));
-    positionAttribute->setCount(3);
+    positionAttribute->setCount(6);
     positionAttribute->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
 
     // Color Attributes
@@ -135,18 +142,18 @@ int main(int argc, char *argv[])
     colorAttribute->setVertexSize(3);
     colorAttribute->setByteOffset(3 * sizeof(float));
     colorAttribute->setByteStride(6 * sizeof(float));
-    colorAttribute->setCount(3);
+    colorAttribute->setCount(6);
     colorAttribute->setName(Qt3DRender::QAttribute::defaultColorAttributeName());
 
     customGeometry->addAttribute(positionAttribute);
     customGeometry->addAttribute(colorAttribute);
 
-    customMeshRenderer->setInstanceCount(1);
+    customMeshRenderer->setInstanceCount(2);
     customMeshRenderer->setIndexOffset(0);
     customMeshRenderer->setFirstInstance(0);
     customMeshRenderer->setPrimitiveType(Qt3DRender::QGeometryRenderer::Triangles);
     customMeshRenderer->setGeometry(customGeometry);
-    customMeshRenderer->setVertexCount(3);
+    customMeshRenderer->setVertexCount(6);
 
     customMeshEntity->addComponent(customMeshRenderer);
     customMeshEntity->addComponent(transform);
