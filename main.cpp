@@ -19,8 +19,11 @@
 #include <QPropertyAnimation>
 #include <Qt3DExtras/qt3dwindow.h>
 #include <Qt3DExtras/qorbitcameracontroller.h>
+#include <QThread>
 
-#include<QDebug>
+#include <QDebug>
+
+// Reference: https://code.woboq.org/qt5/qt3d/tests/manual/custom-mesh-cpp/main.cpp.html#37rawIndexArray
 
 int main(int argc, char *argv[])
 {
@@ -88,29 +91,33 @@ int main(int argc, char *argv[])
     QByteArray vertexBufferData;
 
     // Three vertex, three float and color each
-    vertexBufferData.resize(4 * (3 + 3) * sizeof(float));
+    vertexBufferData.resize(8 * (3 + 3) * sizeof(float));
 
     // Vertices
     QVector3D v0(0.0f, 0.0f, 0.0f);
     QVector3D v1(1.0f, 0.0f, 0.0f);
-    QVector3D v2(0.0f, 1.0f, 0.0f);
-
-//    QVector3D v3(1.0f, 0.0f, 0.0f);
-    QVector3D v4(1.0f, 1.0f, 0.0f);
-//    QVector3D v5(0.0f, 1.0f, 0.0f);
+    QVector3D v2(1.0f, 0.0f, 1.0f);
+    QVector3D v3(0.0f, 0.0f, 1.0f);
+    QVector3D v4(0.0f, 1.0f, 0.0f);
+    QVector3D v5(1.0f, 1.0f, 0.0f);
+    QVector3D v6(1.0f, 1.0f, 1.0f);
+    QVector3D v7(0.0f, 1.0f, 1.0f);
 
     // Color
     QVector3D red(1.0f, 0.0f, 0.0f);
     QVector3D green(0.0f, 1.0f, 0.0f);
     QVector3D blue(0.0f, 0.0f, 1.0f);
+    QVector3D white(0.0f, 0.0f, 0.0f);
 
     QVector<QVector3D> vertices = QVector<QVector3D>()
             << v0 << red
             << v1 << green
             << v2 << blue
-//            << v3 << green
-            << v4 << red;
-//            << v5 << blue;
+            << v3 << white
+            << v4 << blue
+            << v5 << white
+            << v6 << green
+            << v7 << red;
 
     // What is this step?
     float *rawVertexArray = reinterpret_cast<float *>(vertexBufferData.data());
@@ -125,18 +132,70 @@ int main(int argc, char *argv[])
 
     // Indices
     QByteArray indexBufferData;
-    indexBufferData.resize(6 * 3 * sizeof(ushort));
+    indexBufferData.resize(2 * 6 * 3 * sizeof(ushort));
     ushort *rawIndexArray = reinterpret_cast<ushort *>(indexBufferData.data());
 
-    // First triangle
-    rawIndexArray[0] = 0;
-    rawIndexArray[1] = 1;
-    rawIndexArray[2] = 2;
+    // The order of vertext is important!!
 
-    // Second triangle
-    rawIndexArray[3] = 1;
-    rawIndexArray[4] = 3;
-    rawIndexArray[5] = 2;
+    // Front square, triangle 1
+    rawIndexArray[0] = 4;
+    rawIndexArray[1] = 1;
+    rawIndexArray[2] = 0;
+
+    // Front square, triangle 2
+    rawIndexArray[3] = 4;
+    rawIndexArray[4] = 5;
+    rawIndexArray[5] = 1;
+
+    // Bottom square, triangle 1
+    rawIndexArray[6] = 0;
+    rawIndexArray[7] = 1;
+    rawIndexArray[8] = 3;
+
+    // Bottom square, triangle 2
+    rawIndexArray[9] = 1;
+    rawIndexArray[10] = 2;
+    rawIndexArray[11] = 3;
+
+    // Right square, triangle 1
+    rawIndexArray[12] = 5;
+    rawIndexArray[13] = 2;
+    rawIndexArray[14] = 1;
+
+    // Right square, triangle 2
+    rawIndexArray[15] = 2;
+    rawIndexArray[16] = 5;
+    rawIndexArray[17] = 6;
+
+    // Left square, triangle 1
+    rawIndexArray[18] = 0;
+    rawIndexArray[19] = 3;
+    rawIndexArray[20] = 4;
+
+    // Left square, triangle 2
+    rawIndexArray[21] = 7;
+    rawIndexArray[22] = 4;
+    rawIndexArray[23] = 3;
+
+    // Top square, triangle 1
+    rawIndexArray[24] = 7;
+    rawIndexArray[25] = 5;
+    rawIndexArray[26] = 4;
+
+    // Top square, triangle 2
+    rawIndexArray[27] = 7;
+    rawIndexArray[28] = 6;
+    rawIndexArray[29] = 5;
+
+    // Back square, triangle 1
+    rawIndexArray[30] = 7;
+    rawIndexArray[31] = 3;
+    rawIndexArray[32] = 2;
+
+    // Back square, triangle 2
+    rawIndexArray[33] = 2;
+    rawIndexArray[34] = 6;
+    rawIndexArray[35] = 7;
 
     indexDataBuffer->setData(indexBufferData);
 
@@ -149,7 +208,7 @@ int main(int argc, char *argv[])
     positionAttribute->setVertexSize(3);
     positionAttribute->setByteOffset(0);
     positionAttribute->setByteStride(6 * sizeof(float));
-    positionAttribute->setCount(4);
+    positionAttribute->setCount(8);
     positionAttribute->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
 
     // Color Attributes
@@ -160,7 +219,7 @@ int main(int argc, char *argv[])
     colorAttribute->setVertexSize(3);
     colorAttribute->setByteOffset(3 * sizeof(float));
     colorAttribute->setByteStride(6 * sizeof(float));
-    colorAttribute->setCount(4);
+    colorAttribute->setCount(8);
     colorAttribute->setName(Qt3DRender::QAttribute::defaultColorAttributeName());
 
     Qt3DRender::QAttribute *indexAttribute = new Qt3DRender::QAttribute();
@@ -170,7 +229,7 @@ int main(int argc, char *argv[])
     indexAttribute->setVertexSize(1);
     indexAttribute->setByteOffset(0);
     indexAttribute->setByteStride(0);
-    indexAttribute->setCount(6);
+    indexAttribute->setCount(36);
 
     customGeometry->addAttribute(positionAttribute);
     customGeometry->addAttribute(colorAttribute);
@@ -181,7 +240,7 @@ int main(int argc, char *argv[])
     customMeshRenderer->setFirstInstance(0);
     customMeshRenderer->setPrimitiveType(Qt3DRender::QGeometryRenderer::Triangles);
     customMeshRenderer->setGeometry(customGeometry);
-    customMeshRenderer->setVertexCount(6);
+    customMeshRenderer->setVertexCount(36);
 
     customMeshEntity->addComponent(customMeshRenderer);
     customMeshEntity->addComponent(transform);
