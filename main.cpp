@@ -85,15 +85,22 @@ int main(int argc, char *argv[])
     Qt3DRender::QBuffer *vertexDataBuffer = new Qt3DRender::QBuffer(Qt3DRender::QBuffer::VertexBuffer, customGeometry);
 
     QByteArray vertexBufferData;
-    // Three vertex, three float each
-    vertexBufferData.resize(3 * 3 * sizeof(float));
+
+    // Three vertex, three float and color each
+    vertexBufferData.resize(3 * (3 + 3) * sizeof(float));
 
     // Vertices
     QVector3D v0(-0.5f, -0.5f, 0.0f);
     QVector3D v1(0.5f, -0.5f, 0.0f);
     QVector3D v2(0.0f,  0.5f, 0.0f);
 
-    QVector<QVector3D> vertices = QVector<QVector3D>() << v0 << v1 << v2;
+    // Color
+    QVector3D red(1.0f, 0.0f, 0.0f);
+
+    QVector<QVector3D> vertices = QVector<QVector3D>()
+            << v0 << red
+            << v1 << red
+            << v2 << red;
 
     // What is this step?
     float *rawVertexArray = reinterpret_cast<float *>(vertexBufferData.data());
@@ -107,17 +114,30 @@ int main(int argc, char *argv[])
     vertexDataBuffer->setData(vertexBufferData);
 
     // Attributes
+    // Position Attributes
     Qt3DRender::QAttribute *positionAttribute = new Qt3DRender::QAttribute();
     positionAttribute->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
     positionAttribute->setBuffer(vertexDataBuffer);
     positionAttribute->setVertexBaseType(Qt3DRender::QAttribute::Float);
     positionAttribute->setVertexSize(3);
     positionAttribute->setByteOffset(0);
-    positionAttribute->setByteStride(3 * sizeof(float));
+    positionAttribute->setByteStride(6 * sizeof(float));
     positionAttribute->setCount(3);
     positionAttribute->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
 
+    // Color Attributes
+    Qt3DRender::QAttribute *colorAttribute = new Qt3DRender::QAttribute();
+    colorAttribute->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
+    colorAttribute->setBuffer(vertexDataBuffer);
+    colorAttribute->setVertexBaseType(Qt3DRender::QAttribute::Float);
+    colorAttribute->setVertexSize(3);
+    colorAttribute->setByteOffset(3 * sizeof(float));
+    colorAttribute->setByteStride(6 * sizeof(float));
+    colorAttribute->setCount(3);
+    colorAttribute->setName(Qt3DRender::QAttribute::defaultColorAttributeName());
+
     customGeometry->addAttribute(positionAttribute);
+    customGeometry->addAttribute(colorAttribute);
 
     customMeshRenderer->setInstanceCount(1);
     customMeshRenderer->setIndexOffset(0);
