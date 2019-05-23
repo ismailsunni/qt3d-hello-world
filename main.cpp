@@ -96,11 +96,13 @@ int main(int argc, char *argv[])
 
     // Color
     QVector3D red(1.0f, 0.0f, 0.0f);
+    QVector3D green(0.0f, 1.0f, 0.0f);
+    QVector3D blue(0.0f, 0.0f, 1.0f);
 
     QVector<QVector3D> vertices = QVector<QVector3D>()
             << v0 << red
-            << v1 << red
-            << v2 << red;
+            << v1 << green
+            << v2 << blue;
 
     // What is this step?
     float *rawVertexArray = reinterpret_cast<float *>(vertexBufferData.data());
