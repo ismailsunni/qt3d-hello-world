@@ -79,24 +79,25 @@ int main(int argc, char *argv[])
     // Transform
     Qt3DCore::QTransform *transform = new Qt3DCore::QTransform;
     transform->setScale(8.0f);
-    // Custom Mesh (TetraHedron)
+    // Custom Mesh
     Qt3DRender::QGeometryRenderer *customMeshRenderer = new Qt3DRender::QGeometryRenderer;
     Qt3DRender::QGeometry *customGeometry = new Qt3DRender::QGeometry(customMeshRenderer);
     Qt3DRender::QBuffer *vertexDataBuffer = new Qt3DRender::QBuffer(Qt3DRender::QBuffer::VertexBuffer, customGeometry);
+    Qt3DRender::QBuffer *indexDataBuffer = new Qt3DRender::QBuffer(Qt3DRender::QBuffer::IndexBuffer, customGeometry);
 
     QByteArray vertexBufferData;
 
     // Three vertex, three float and color each
-    vertexBufferData.resize(6 * (3 + 3) * sizeof(float));
+    vertexBufferData.resize(4 * (3 + 3) * sizeof(float));
 
     // Vertices
     QVector3D v0(0.0f, 0.0f, 0.0f);
     QVector3D v1(1.0f, 0.0f, 0.0f);
     QVector3D v2(0.0f, 1.0f, 0.0f);
 
-    QVector3D v3(1.0f, 0.0f, 0.0f);
+//    QVector3D v3(1.0f, 0.0f, 0.0f);
     QVector3D v4(1.0f, 1.0f, 0.0f);
-    QVector3D v5(0.0f, 1.0f, 0.0f);
+//    QVector3D v5(0.0f, 1.0f, 0.0f);
 
     // Color
     QVector3D red(1.0f, 0.0f, 0.0f);
@@ -107,9 +108,9 @@ int main(int argc, char *argv[])
             << v0 << red
             << v1 << green
             << v2 << blue
-            << v3 << green
-            << v4 << red
-            << v5 << blue;
+//            << v3 << green
+            << v4 << red;
+//            << v5 << blue;
 
     // What is this step?
     float *rawVertexArray = reinterpret_cast<float *>(vertexBufferData.data());
@@ -122,6 +123,23 @@ int main(int argc, char *argv[])
 
     vertexDataBuffer->setData(vertexBufferData);
 
+    // Indices
+    QByteArray indexBufferData;
+    indexBufferData.resize(6 * 3 * sizeof(ushort));
+    ushort *rawIndexArray = reinterpret_cast<ushort *>(indexBufferData.data());
+
+    // First triangle
+    rawIndexArray[0] = 0;
+    rawIndexArray[1] = 1;
+    rawIndexArray[2] = 2;
+
+    // Second triangle
+    rawIndexArray[3] = 1;
+    rawIndexArray[4] = 3;
+    rawIndexArray[5] = 2;
+
+    indexDataBuffer->setData(indexBufferData);
+
     // Attributes
     // Position Attributes
     Qt3DRender::QAttribute *positionAttribute = new Qt3DRender::QAttribute();
@@ -131,7 +149,7 @@ int main(int argc, char *argv[])
     positionAttribute->setVertexSize(3);
     positionAttribute->setByteOffset(0);
     positionAttribute->setByteStride(6 * sizeof(float));
-    positionAttribute->setCount(6);
+    positionAttribute->setCount(4);
     positionAttribute->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
 
     // Color Attributes
@@ -142,11 +160,21 @@ int main(int argc, char *argv[])
     colorAttribute->setVertexSize(3);
     colorAttribute->setByteOffset(3 * sizeof(float));
     colorAttribute->setByteStride(6 * sizeof(float));
-    colorAttribute->setCount(6);
+    colorAttribute->setCount(4);
     colorAttribute->setName(Qt3DRender::QAttribute::defaultColorAttributeName());
+
+    Qt3DRender::QAttribute *indexAttribute = new Qt3DRender::QAttribute();
+    indexAttribute->setAttributeType(Qt3DRender::QAttribute::IndexAttribute);
+    indexAttribute->setBuffer(indexDataBuffer);
+    indexAttribute->setVertexBaseType(Qt3DRender::QAttribute::UnsignedShort);
+    indexAttribute->setVertexSize(1);
+    indexAttribute->setByteOffset(0);
+    indexAttribute->setByteStride(0);
+    indexAttribute->setCount(6);
 
     customGeometry->addAttribute(positionAttribute);
     customGeometry->addAttribute(colorAttribute);
+    customGeometry->addAttribute(indexAttribute);
 
     customMeshRenderer->setInstanceCount(2);
     customMeshRenderer->setIndexOffset(0);
