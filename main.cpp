@@ -1,34 +1,44 @@
-#include <QGuiApplication>
-#include <Qt3DCore/QEntity>
-#include <Qt3DExtras/Qt3DWindow>
-#include <Qt3DExtras/QCuboidMesh>
-#include <Qt3DCore/QTransform>
-#include <Qt3DExtras/QPhongAlphaMaterial>
-#include <Qt3DRender/QMaterial>
-#include <QVector3D>
 #include <QColor>
-#include <Qt3DRender/QCamera>
-#include <Qt3DExtras/QOrbitCameraController>
-
-#include <Qt3DExtras/QForwardRenderer>
-#include <Qt3DExtras/QPerVertexColorMaterial>
-#include <Qt3DRender/QGeometryRenderer>
-#include <Qt3DRender/QGeometry>
-#include <Qt3DRender/QAttribute>
-#include <Qt3DRender/QBuffer>
+#include <QObject>
+#include <QDebug>
 #include <QPropertyAnimation>
-#include <Qt3DExtras/qt3dwindow.h>
-#include <Qt3DExtras/qorbitcameracontroller.h>
 #include <QThread>
 
-#include <QDebug>
+#include <QVector3D>
+
+#include <Qt3DCore/QEntity>
+#include <Qt3DCore/QTransform>
+#include <Qt3DExtras/QCuboidMesh>
+#include <Qt3DExtras/QForwardRenderer>
+#include <Qt3DExtras/QOrbitCameraController>
+#include <Qt3DExtras/QPerVertexColorMaterial>
+#include <Qt3DExtras/QPhongAlphaMaterial>
+#include <Qt3DExtras/Qt3DWindow>
+#include <Qt3DExtras/qorbitcameracontroller.h>
+#include <Qt3DExtras/qt3dwindow.h>
+
+#include <Qt3DRender/QAttribute>
+#include <Qt3DRender/QBuffer>
+#include <Qt3DRender/QCamera>
+#include <Qt3DRender/QGeometry>
+#include <Qt3DRender/QGeometryRenderer>
+#include <Qt3DRender/QMaterial>
+
+#include <QtGui/QScreen>
+
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QCommandLinkButton>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
 
 // Reference: https://code.woboq.org/qt5/qt3d/tests/manual/custom-mesh-cpp/main.cpp.html#37rawIndexArray
 
 int main(int argc, char *argv[])
 {
     // Application
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     // Window
     Qt3DExtras::Qt3DWindow *view = new Qt3DExtras::Qt3DWindow();
@@ -36,11 +46,27 @@ int main(int argc, char *argv[])
     // Root entity
     Qt3DCore::QEntity *rootEntity = new Qt3DCore::QEntity();
 
+    QWidget *container = QWidget::createWindowContainer(view);
+    QSize screenSize = view->screen()->size();
+    container->setMinimumSize(QSize(400, 300));
+    container->setMaximumSize(screenSize);
+
+    QWidget *widget = new QWidget;
+    QHBoxLayout *hLayout = new QHBoxLayout(widget);
+    QVBoxLayout *vLayout = new QVBoxLayout();
+    vLayout->setAlignment(Qt::AlignTop);
+    hLayout->addWidget(container, 1);
+    hLayout->addLayout(vLayout);
+
+    widget->setWindowTitle(QStringLiteral("Hello Cube"));
+
     // Camera
     Qt3DRender::QCamera *camera = view->camera();
     camera->lens()->setPerspectiveProjection(45.0f, 16.0f/9.0f, 0.1f, 1000.0f);
-    camera->setPosition(QVector3D(0, 0, 50.0f));
-    camera->setViewCenter(QVector3D(0, 0, 0));
+    QVector3D originalPosition(0, 0, 50.0f);
+    camera->setPosition(originalPosition);
+    QVector3D originalViewCenter(0, 0, 0);
+    camera->setViewCenter(originalViewCenter);
 
     // Camera control
     Qt3DExtras::QOrbitCameraController *camController = new Qt3DExtras::QOrbitCameraController(rootEntity);
@@ -57,7 +83,7 @@ int main(int argc, char *argv[])
     // Cuboid mesh transform
     Qt3DCore::QTransform *cuboidTransform = new Qt3DCore::QTransform();
     cuboidTransform->setScale(3.0);
-    cuboidTransform->setTranslation(QVector3D(10.0f, 10.0f, 0.0f));
+    cuboidTransform->setTranslation(QVector3D(15.0f, 0.0f, 0.0f));
 
     // Cuboid material
     Qt3DExtras::QPhongAlphaMaterial *cuboidMaterial = new Qt3DExtras::QPhongAlphaMaterial(rootEntity);
@@ -247,8 +273,75 @@ int main(int argc, char *argv[])
     customMeshEntity->addComponent(material);
 
     view->setRootEntity(rootEntity);
-    view->show();
-    view->resize(1600, 1200);
+//    view->show();
+//    view->resize(1600, 1200);
+
+    // Create control widget
+    QCommandLinkButton *info = new QCommandLinkButton();
+    info->setText(QStringLiteral("Qt3D Cube"));
+    info->setDescription(QString::fromLatin1("Showing custom cube and cube from cuboid."));
+    info->setIconSize(QSize(0,0));
+
+    // Zoom in button
+    QPushButton *zoomInButton = new QPushButton(widget);
+    zoomInButton->setText(QStringLiteral("Zoom In"));
+    QPushButton *zoomOutButton = new QPushButton(widget);
+    zoomOutButton->setText(QStringLiteral("Zoom Out"));
+    QPushButton *moveUpButton = new QPushButton(widget);
+    moveUpButton->setText(QStringLiteral("Move Up"));
+    QPushButton *moveDownButton = new QPushButton(widget);
+    moveDownButton->setText(QStringLiteral("Move Down"));
+    QPushButton *moveLeftButton = new QPushButton(widget);
+    moveLeftButton->setText(QStringLiteral("Move Left"));
+    QPushButton *moveRightButton = new QPushButton(widget);
+    moveRightButton->setText(QStringLiteral("Move Right"));
+    QPushButton *resetViewButton = new QPushButton(widget);
+    resetViewButton->setText(QStringLiteral("Reset View"));
+
+
+    vLayout->addWidget(info);
+    vLayout->addWidget(zoomInButton);
+    vLayout->addWidget(zoomOutButton);
+    vLayout->addWidget(moveUpButton);
+    vLayout->addWidget(moveDownButton);
+    vLayout->addWidget(moveLeftButton);
+    vLayout->addWidget(moveRightButton);
+    vLayout->addWidget(resetViewButton);
+    float moveFactor = 5;
+    float zoomFactor = 5;
+
+    QObject::connect(zoomInButton, &QPushButton::clicked, camera, [ = ]{
+        camera->translate(QVector3D(0, 0, zoomFactor));
+        qInfo() << "Zoom in" << "Camera position: " << camera->position();
+    });
+    QObject::connect(zoomOutButton, &QPushButton::clicked,camera, [ = ]{
+        camera->translate(QVector3D(0, 0, -zoomFactor));
+        qInfo() << "Zoom out" << "Camera position: " << camera->position();
+    });
+    QObject::connect(moveUpButton, &QPushButton::clicked,camera, [ = ]{
+        camera->translate(QVector3D(0, -moveFactor, 0));
+        qInfo() << "Move up" << "Camera position: " << camera->position();
+    });
+    QObject::connect(moveDownButton, &QPushButton::clicked,camera, [ = ]{
+        camera->translate(QVector3D(0, moveFactor, 0));
+        qInfo() << "Move down" << "Camera position: " << camera->position();
+    });
+    QObject::connect(moveLeftButton, &QPushButton::clicked,camera, [ = ]{
+        camera->translate(QVector3D(moveFactor, 0, 0));
+        qInfo() << "Move left" << "Camera position: " << camera->position();
+    });
+    QObject::connect(moveRightButton, &QPushButton::clicked,camera, [ = ]{
+        camera->translate(QVector3D(-moveFactor, 0, 0));
+        qInfo() << "Move right" << "Camera position: " << camera->position();
+    });
+    QObject::connect(resetViewButton, &QPushButton::clicked,camera, [ = ]{
+        camera->setPosition(originalPosition);
+        camera->setViewCenter(originalViewCenter);
+        qInfo() << "Reset view" << "Camera position: " << camera->position();
+    });
+
+    widget->show();
+    widget->resize(1600, 1200);
 
     return app.exec();
 }
